@@ -9,8 +9,20 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   let score = 0;
   const painPoints: string[] = [];
 
-  // No mobile CTA / click-to-call (2 pts)
-  if (!audit.checks.hasMobileCTA && !audit.checks.hasClickToCall) {
+    // Graceful fallback if checks is null/undefined
+  const checks = audit.checks ?? {
+    hasMobileCTA: false,
+    hasContactForm: false,
+    hasHttps: false,
+    hasSchemaOrg: false,
+    hasGoogleMaps: false,
+    mobileLoadTimeMs: 0,
+    hasClickToCall: false,
+    hasBookingWidget: false,
+  };
+
+// No mobile CTA / click-to-call (2 pts)
+  if (!checks.hasMobileCTA && !checks.hasClickToCall) {
     score += 2;
     painPoints.push(
       "Ei mobiili-CTA:ta tai soittopainiketta — menetät ~30% puheluista mobiililta",
@@ -18,7 +30,7 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   }
 
   // No booking/contact form (2 pts)
-  if (!audit.checks.hasContactForm && !audit.checks.hasBookingWidget) {
+  if (!checks.hasContactForm && !checks.hasBookingWidget) {
     score += 2;
     painPoints.push(
       "Ei yhteydenottolomaketta tai ajanvarausta — potentiaaliset asiakkaat poistuvat",
@@ -26,7 +38,7 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   }
 
   // No HTTPS (1 pt)
-  if (!audit.checks.hasHttps) {
+  if (!checks.hasHttps) {
     score += 1;
     painPoints.push(
       'HTTPS puuttuu — Google Chrome näyttää "Ei turvallinen" -varoituksen',
@@ -34,7 +46,7 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   }
 
   // No Schema.org (1 pt)
-  if (!audit.checks.hasSchemaOrg) {
+  if (!checks.hasSchemaOrg) {
     score += 1;
     painPoints.push(
       "Ei Schema.org-merkintöjä — Google ei näytä rikastettuja hakutuloksia (tähdet, aukioloajat)",
@@ -42,16 +54,16 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   }
 
   // Slow mobile load > 4s (1 pt)
-  if (audit.checks.mobileLoadTimeMs > 4000) {
+  if (checks.mobileLoadTimeMs > 4000) {
     score += 1;
-    const secs = (audit.checks.mobileLoadTimeMs / 1000).toFixed(1);
+    const secs = (checks.mobileLoadTimeMs / 1000).toFixed(1);
     painPoints.push(
       `Mobiilisivun latausaika ${secs}s — 53% käyttäjistä poistuu yli 3s latausajalla`,
     );
   }
 
   // No Google Maps (1 pt — proxy for poor local SEO / no reviews integration)
-  if (!audit.checks.hasGoogleMaps) {
+  if (!checks.hasGoogleMaps) {
     score += 1;
     painPoints.push(
       "Ei Google Maps -upotusta — vaikeuttaa asiakkaiden navigointia paikalle",
