@@ -29,3 +29,5 @@ data/siteforge.db-wal
 data/siteforge.db-shm
 data/screenshots/
 data/reports/
+undefined:*
+data/
