@@ -22,3 +22,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# pipeline data
+data/siteforge.db
+data/siteforge.db-wal
+data/siteforge.db-shm
+data/screenshots/
+data/reports/

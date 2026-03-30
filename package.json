@@ -9,12 +9,22 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "prospect": "tsx src/pipeline/prospector/index.ts",
+    "prospect:search": "tsx src/pipeline/prospector/search.ts",
+    "prospect:screenshot": "tsx src/pipeline/prospector/screenshot.ts",
+    "prospect:audit": "tsx src/pipeline/prospector/audit.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
     "@tailwindcss/vite": "^4.2.2",
+    "@types/better-sqlite3": "^7.6.13",
     "astro": "^6.1.2",
-    "tailwindcss": "^4.2.2"
+    "better-sqlite3": "^12.8.0",
+    "commander": "^14.0.3",
+    "lighthouse": "^13.0.3",
+    "playwright": "^1.58.2",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.21.0"
   }
 }
