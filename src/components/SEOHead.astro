@@ -1,0 +1,83 @@
+---
+import siteConfig from "../../site.config";
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage: string;
+  canonicalUrl: string;
+  type: "website" | "article";
+  publishedDate?: string;
+}
+
+const { title, description, ogImage, canonicalUrl, type, publishedDate } =
+  Astro.props;
+
+const { business, seo } = siteConfig;
+
+const ogImageUrl = ogImage.startsWith("http")
+  ? ogImage
+  : `${seo.siteUrl}${ogImage}`;
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: business.name,
+  description: business.description,
+  url: seo.siteUrl,
+  telephone: business.phone,
+  email: business.email,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: business.address.street,
+    addressLocality: business.address.city,
+    postalCode: business.address.zip,
+    addressCountry: business.address.country,
+  },
+  openingHoursSpecification: business.hours
+    .filter((h) => h.hours !== "Suljettu")
+    .map((h) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: h.day,
+      opens: h.hours.split(" - ")[0],
+      closes: h.hours.split(" - ")[1],
+    })),
+  ...(siteConfig.testimonials.length > 0 && {
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: (
+        siteConfig.testimonials.reduce((sum, t) => sum + t.rating, 0) /
+        siteConfig.testimonials.length
+      ).toFixed(1),
+      reviewCount: siteConfig.testimonials.length,
+    },
+  }),
+};
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:locale" content={seo.locale} />
+<meta property="og:site_name" content={business.name} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageUrl} />
+
+{publishedDate && <meta property="article:published_time" content={publishedDate} />}
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+<script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />

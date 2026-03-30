@@ -1,0 +1,50 @@
+---
+import siteConfig from "../../site.config";
+
+const { business } = siteConfig;
+---
+
+<section id="meista" class="py-20 md:py-28 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div>
+        <img
+          src="https://picsum.photos/seed/about/800/600"
+          alt={`${business.name} - tietoa meista`}
+          class="rounded-2xl shadow-lg w-full h-auto object-cover aspect-4/3"
+          loading="lazy"
+        />
+      </div>
+      <div>
+        <h2 class="text-3xl md:text-4xl font-bold font-heading text-secondary mb-6">
+          Tietoa meista
+        </h2>
+        <p class="text-lg text-gray-600 leading-relaxed mb-6">
+          {business.description}
+        </p>
+        <p class="text-lg text-gray-600 leading-relaxed mb-8">
+          Sijaitsemme osoitteessa <strong>{business.address.street}</strong>,
+          aivan {business.address.city}n keskustassa. Tervetuloa tutustumaan!
+        </p>
+
+        <div class="bg-gray-50 rounded-xl p-6">
+          <h3 class="text-lg font-bold text-secondary mb-4">Aukioloajat</h3>
+          <dl class="space-y-2">
+            {
+              business.hours.map((item) => (
+                <div class="flex justify-between">
+                  <dt class="text-gray-600">{item.day}</dt>
+                  <dd
+                    class={`font-medium ${item.hours === "Suljettu" ? "text-red-500" : "text-secondary"}`}
+                  >
+                    {item.hours}
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

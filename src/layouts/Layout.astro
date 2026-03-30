@@ -1,0 +1,65 @@
+---
+import siteConfig from "../../site.config";
+import SEOHead from "../components/SEOHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  type?: "website" | "article";
+  publishedDate?: string;
+}
+
+const {
+  title,
+  description = siteConfig.seo.defaultMetaDescription,
+  ogImage = siteConfig.seo.ogImage,
+  canonicalUrl,
+  type = "website",
+  publishedDate,
+} = Astro.props;
+
+const pageTitle = title
+  ? `${title} | ${siteConfig.business.name}`
+  : `${siteConfig.business.name} - ${siteConfig.business.tagline}`;
+
+const { theme } = siteConfig;
+---
+
+<!doctype html>
+<html lang={siteConfig.seo.locale.split("_")[0]}>
+  <head>
+    <SEOHead
+      title={pageTitle}
+      description={description}
+      ogImage={ogImage}
+      canonicalUrl={canonicalUrl || Astro.url.href}
+      type={type}
+      publishedDate={publishedDate}
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={theme.googleFontsUrl} rel="stylesheet" />
+    <style
+      define:vars={{
+        "site-primary": theme.primaryColor,
+        "site-secondary": theme.secondaryColor,
+        "site-accent": theme.accentColor,
+        "site-font-family": theme.fontFamily,
+        "site-heading-font": theme.headingFont,
+      }}
+    >
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col bg-white text-secondary">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

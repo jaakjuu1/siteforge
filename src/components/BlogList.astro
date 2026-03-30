@@ -1,0 +1,82 @@
+---
+import { getCollection } from "astro:content";
+import siteConfig from "../../site.config";
+
+if (!siteConfig.features.blog) return;
+
+const posts = (await getCollection("blog"))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+---
+
+{
+  posts.length > 0 && (
+    <section class="py-20 md:py-28 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-bold font-heading text-secondary mb-4">
+            Blogi
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            Vinkkeja ja inspiraatiota hiustenhoitoon
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {posts.map((post) => (
+            <a
+              href={`/blog/${post.id}`}
+              class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+            >
+              {post.data.image && (
+                <div class="aspect-video overflow-hidden">
+                  <img
+                    src={post.data.image}
+                    alt={post.data.title}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="p-6">
+                <time class="text-sm text-gray-400" datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString("fi-FI", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+                <h3 class="text-xl font-bold font-heading text-secondary mt-2 mb-3 group-hover:text-primary transition-colors">
+                  {post.data.title}
+                </h3>
+                <p class="text-gray-600 line-clamp-3">{post.data.description}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="text-center mt-12">
+          <a
+            href="/blog"
+            class="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-light transition-colors"
+          >
+            Katso kaikki kirjoitukset
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}

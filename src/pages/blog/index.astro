@@ -1,0 +1,85 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import siteConfig from "../../../site.config";
+
+if (!siteConfig.features.blog) {
+  return Astro.redirect("/");
+}
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<Layout title="Blogi" description="Lue viimeisimmat kirjoituksemme hiustenhoitovinkeista ja kampaamouutisista.">
+  <section class="py-16 md:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold font-heading text-secondary mb-4">
+          Blogi
+        </h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+          Vinkkeja, trendeja ja inspiraatiota hiustenhoitoon
+        </p>
+      </div>
+
+      {
+        posts.length === 0 ? (
+          <p class="text-center text-gray-500">
+            Ei viela julkaistuja kirjoituksia.
+          </p>
+        ) : (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post) => (
+              <a
+                href={`/blog/${post.id}`}
+                class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              >
+                {post.data.image && (
+                  <div class="aspect-video overflow-hidden">
+                    <img
+                      src={post.data.image}
+                      alt={post.data.title}
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <div class="p-6">
+                  <div class="flex items-center gap-3 mb-3">
+                    <time
+                      class="text-sm text-gray-400"
+                      datetime={post.data.date.toISOString()}
+                    >
+                      {post.data.date.toLocaleDateString("fi-FI", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </time>
+                  </div>
+                  <h2 class="text-xl font-bold font-heading text-secondary mb-3 group-hover:text-primary transition-colors">
+                    {post.data.title}
+                  </h2>
+                  <p class="text-gray-600 line-clamp-3">
+                    {post.data.description}
+                  </p>
+                  {post.data.tags && (
+                    <div class="flex flex-wrap gap-2 mt-4">
+                      {post.data.tags.map((tag: string) => (
+                        <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>
