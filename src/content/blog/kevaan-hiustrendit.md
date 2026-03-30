@@ -1,6 +1,6 @@
 ---
-title: "Kevaan 2025 kuumimmat hiustrendit"
-description: "Uusi vuodenaika, uusi tyyli! Tutustu kevaan trendikkaimmpiin hiustyyleihin ja vareihin. Lyhyista leikkauksista pehmeihin aaltoihin - taalta loydat inspiraation."
+title: "Kevään 2025 kuumimmat hiustrendit"
+description: "Uusi vuodenaika, uusi tyyli! Tutustu kevään trendikkäimpiin hiustyyleihin ja väreihin. Lyhyistä leikkauksista pehmeisiin aaltoihin — täältä löydät inspiraation."
 date: 2025-03-01
 image: "https://picsum.photos/seed/trends/800/450"
 tags: ["trendit", "inspiraatio", "kevat"]

@@ -136,8 +136,9 @@ const navItems = features.blog
   // Scroll-based header styling
   const updateHeader = () => {
     const scrolled = window.scrollY > 40;
+    const needsSolid = scrolled || isMenuOpen;
     if (header) {
-      if (scrolled) {
+      if (needsSolid) {
         header.classList.add("glass-strong", "shadow-sm");
         header.style.borderBottom = "1px solid rgba(0,0,0,0.04)";
       } else {
@@ -149,7 +150,7 @@ const navItems = features.blog
     // Nav link colors
     const links = header?.querySelectorAll(".nav-link");
     links?.forEach((link) => {
-      if (scrolled) {
+      if (needsSolid) {
         link.classList.remove("text-white/90", "hover:text-white");
         link.classList.add("text-secondary/70", "hover:text-primary");
       } else {
@@ -159,7 +160,7 @@ const navItems = features.blog
     });
     // Logo color
     if (logo) {
-      if (scrolled) {
+      if (needsSolid) {
         logo.classList.remove("text-white");
         logo.classList.add("text-secondary");
       } else {
@@ -169,7 +170,7 @@ const navItems = features.blog
     }
     // Mobile button color
     if (btn) {
-      if (scrolled || isMenuOpen) {
+      if (needsSolid) {
         btn.classList.remove("text-white");
         btn.classList.add("text-secondary");
       } else {

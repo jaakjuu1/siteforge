@@ -53,9 +53,9 @@ export interface SiteConfig {
 const siteConfig: SiteConfig = {
   business: {
     name: "Kampaamo Kirsikka",
-    tagline: "Kauneutta ja tyylia Oulun sydamessa",
+    tagline: "Kauneutta ja tyyliä Oulun sydämessä",
     description:
-      "Kampaamo Kirsikka on oululainen kampaamo, joka tarjoaa laadukkaita hiuspalveluita modernissa ja viihtyisassa ymparistossa. Meilla jokainen asiakas saa yksilollista palvelua.",
+      "Kampaamo Kirsikka on oululainen kampaamo, joka tarjoaa laadukkaita hiuspalveluita modernissa ja viihtyisässä ympäristössä. Meillä jokainen asiakas saa yksilöllistä palvelua.",
     phone: "+358 40 123 4567",
     email: "info@kampaamokirsikka.fi",
     address: {
@@ -77,37 +77,37 @@ const siteConfig: SiteConfig = {
       {
         title: "Hiustenleikkuu",
         description:
-          "Ammattimainen hiustenleikkuu naisille, miehille ja lapsille. Raataloidaan juuri sinulle sopiva tyyli.",
+          "Ammattimainen hiustenleikkuu naisille, miehille ja lapsille. Räätälöidään juuri sinulle sopiva tyyli.",
         icon: "scissors",
       },
       {
-        title: "Varjays",
+        title: "Värjäys",
         description:
-          "Laadukkaat varjayspalvelut perinteisesta kokovareista moderneihin balayage-tekniikoihin.",
+          "Laadukkaat värjäyspalvelut perinteisestä kokoväreistä moderneihin balayage-tekniikoihin.",
         icon: "palette",
       },
       {
         title: "Kampaukset",
         description:
-          "Upeita kampauksia juhliin, haihin ja muihin erityistilaisuuksiin. Meikki saatavilla lisapalveluna.",
+          "Upeita kampauksia juhliin, häihin ja muihin erityistilaisuuksiin. Meikki saatavilla lisäpalveluna.",
         icon: "sparkles",
       },
       {
         title: "Hiushoidot",
         description:
-          "Elvyttavat ja kosteuttavat hiushoidot vahingoittuneille ja kuiville hiuksille.",
+          "Elvyttävät ja kosteuttavat hiushoidot vahingoittuneille ja kuiville hiuksille.",
         icon: "heart",
       },
       {
         title: "Parturi",
         description:
-          "Miesten parturipalvelut: leikkuu, parranajo ja muotoilu perinteisella ammattitaidolla.",
+          "Miesten parturipalvelut: leikkuu, parranajo ja muotoilu perinteisellä ammattitaidolla.",
         icon: "user",
       },
       {
         title: "Hiustenpidennykset",
         description:
-          "Laadukkaista aidoista hiuksista tehdyt pidennykset luonnollisen nakoiseen lopputulokseen.",
+          "Laadukkaista aidoista hiuksista tehdyt pidennykset luonnollisen näköiseen lopputulokseen.",
         icon: "wand",
       },
     ],
@@ -141,22 +141,22 @@ const siteConfig: SiteConfig = {
   testimonials: [
     {
       name: "Maria K.",
-      text: "Paras kampaamo Oulussa! Olen kaynyt taalla vuosia ja aina lahden tyytyaisena. Henkilokunta on ammattitaitoista ja ystävallista.",
+      text: "Paras kampaamo Oulussa! Olen käynyt täällä vuosia ja aina lähden tyytyväisenä. Henkilökunta on ammattitaitoista ja ystävällistä.",
       rating: 5,
     },
     {
       name: "Tiina S.",
-      text: "Upea balayage-varjays! Juuri sellainen kuin toivoin. Kiitos ihanasta palvelusta!",
+      text: "Upea balayage-värjäys! Juuri sellainen kuin toivoin. Kiitos ihanasta palvelusta!",
       rating: 5,
     },
     {
       name: "Jukka L.",
-      text: "Rento tunnelma ja hyvat parturipalvelut. Ei tarvitse muualle menna.",
+      text: "Rento tunnelma ja hyvät parturipalvelut. Ei tarvitse muualle mennä.",
       rating: 5,
     },
     {
       name: "Anna P.",
-      text: "Hairpakkaukseni olivat upeat. Suosittelen ehdottomasti kaikille!",
+      text: "Häihin tehty kampaus oli upea. Suosittelen ehdottomasti kaikille!",
       rating: 4,
     },
   ],

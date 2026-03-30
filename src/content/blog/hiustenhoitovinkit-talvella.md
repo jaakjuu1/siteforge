@@ -1,6 +1,6 @@
 ---
-title: "5 parasta hiustenhoitovinkkia talvikaudelle"
-description: "Talvi koettelee hiuksia kuivalla ilmalla ja pakkasella. Lue ammattilaisen vinkit, joilla pidat hiuksesi tervaina ja kiiltavina lapi talven."
+title: "5 parasta hiustenhoitovinkkiä talvikaudelle"
+description: "Talvi koettelee hiuksia kuivalla ilmalla ja pakkasella. Lue ammattilaisen vinkit, joilla pidät hiuksesi terveinä ja kiiltävinä läpi talven."
 date: 2025-01-15
 image: "https://picsum.photos/seed/haircare/800/450"
 tags: ["hiustenhoito", "vinkit", "talvi"]
