@@ -4,38 +4,59 @@ import siteConfig from "../../site.config";
 const { business } = siteConfig;
 ---
 
-<section id="meista" class="py-20 md:py-28 bg-white">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-      <div>
-        <img
-          src="https://picsum.photos/seed/about/800/600"
-          alt={`${business.name} - tietoa meista`}
-          class="rounded-2xl shadow-lg w-full h-auto object-cover aspect-4/3"
-          loading="lazy"
-        />
+<section id="meista" class="section-padding bg-white overflow-hidden">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <!-- Image -->
+      <div class="reveal relative">
+        <div class="relative rounded-2xl overflow-hidden" style="box-shadow: var(--shadow-xl)">
+          <img
+            src="https://picsum.photos/seed/about/800/600"
+            alt={`${business.name} - tietoa meista`}
+            class="w-full h-auto object-cover aspect-4/3"
+            loading="lazy"
+          />
+          <!-- Subtle overlay gradient -->
+          <div class="absolute inset-0 bg-gradient-to-t from-secondary/10 to-transparent"></div>
+        </div>
+        <!-- Decorative accent -->
+        <div class="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/5 rounded-2xl -z-10 hidden lg:block"></div>
+        <div class="absolute -top-4 -left-4 w-24 h-24 border-2 border-primary/10 rounded-2xl -z-10 hidden lg:block"></div>
       </div>
-      <div>
-        <h2 class="text-3xl md:text-4xl font-bold font-heading text-secondary mb-6">
+
+      <!-- Content -->
+      <div class="reveal reveal-delay-2">
+        <span class="inline-block text-sm font-semibold text-primary tracking-widest uppercase mb-4">
+          Meista
+        </span>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-secondary mb-7 leading-tight">
           Tietoa meista
         </h2>
-        <p class="text-lg text-gray-600 leading-relaxed mb-6">
+        <p class="text-lg text-gray-500 leading-relaxed mb-6">
           {business.description}
         </p>
-        <p class="text-lg text-gray-600 leading-relaxed mb-8">
-          Sijaitsemme osoitteessa <strong>{business.address.street}</strong>,
+        <p class="text-lg text-gray-500 leading-relaxed mb-10">
+          Sijaitsemme osoitteessa <strong class="text-secondary font-medium">{business.address.street}</strong>,
           aivan {business.address.city}n keskustassa. Tervetuloa tutustumaan!
         </p>
 
-        <div class="bg-gray-50 rounded-xl p-6">
-          <h3 class="text-lg font-bold text-secondary mb-4">Aukioloajat</h3>
-          <dl class="space-y-2">
+        <!-- Business hours card -->
+        <div class="bg-gray-50/80 rounded-2xl p-7 border border-gray-100/50" style="box-shadow: var(--shadow-subtle)">
+          <h3 class="text-lg font-bold text-secondary mb-5 flex items-center gap-2.5">
+            <span class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+            Aukioloajat
+          </h3>
+          <dl class="space-y-2.5">
             {
               business.hours.map((item) => (
-                <div class="flex justify-between">
-                  <dt class="text-gray-600">{item.day}</dt>
+                <div class="flex justify-between items-center py-1">
+                  <dt class="text-gray-500 text-[0.95rem]">{item.day}</dt>
                   <dd
-                    class={`font-medium ${item.hours === "Suljettu" ? "text-red-500" : "text-secondary"}`}
+                    class={`font-medium text-[0.95rem] ${item.hours === "Suljettu" ? "text-red-400" : "text-secondary"}`}
                   >
                     {item.hours}
                   </dd>

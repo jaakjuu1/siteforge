@@ -20,15 +20,19 @@ const socialIcons: Record<string, string> = {
 };
 ---
 
-<footer class="bg-secondary text-white">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-      <div class="lg:col-span-2">
+<footer class="bg-[#0f172a] text-white relative overflow-hidden">
+  <!-- Subtle top gradient accent -->
+  <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
+
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+      <!-- Brand column -->
+      <div class="lg:col-span-5">
         <h3 class="text-2xl font-bold font-heading mb-4">{business.name}</h3>
-        <p class="text-gray-300 leading-relaxed max-w-md mb-6">
+        <p class="text-gray-400 leading-relaxed max-w-sm mb-8 text-[0.95rem]">
           {business.description}
         </p>
-        <div class="flex gap-4">
+        <div class="flex gap-3">
           {
             Object.entries(business.socialLinks)
               .filter(([, url]) => url)
@@ -37,11 +41,12 @@ const socialIcons: Record<string, string> = {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-primary transition-colors"
+                  class="w-11 h-11 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group"
+                  style="transition-timing-function: var(--ease-out-expo)"
                   aria-label={`${business.name} - ${platform}`}
                 >
                   <svg
-                    class="w-5 h-5"
+                    class="w-4.5 h-4.5 text-gray-400 group-hover:text-white transition-colors duration-300"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -53,15 +58,16 @@ const socialIcons: Record<string, string> = {
         </div>
       </div>
 
-      <div>
-        <h4 class="text-lg font-bold mb-4">Yhteystiedot</h4>
-        <ul class="space-y-3 text-gray-300">
-          <li>{business.address.street}</li>
-          <li>{business.address.zip} {business.address.city}</li>
+      <!-- Contact column -->
+      <div class="lg:col-span-3">
+        <h4 class="text-sm font-semibold tracking-widest uppercase text-white/50 mb-6">Yhteystiedot</h4>
+        <ul class="space-y-4 text-gray-400">
+          <li class="text-[0.95rem]">{business.address.street}</li>
+          <li class="text-[0.95rem]">{business.address.zip} {business.address.city}</li>
           <li>
             <a
               href={`tel:${business.phone}`}
-              class="hover:text-white transition-colors"
+              class="text-[0.95rem] hover:text-white transition-colors duration-300"
             >
               {business.phone}
             </a>
@@ -69,7 +75,7 @@ const socialIcons: Record<string, string> = {
           <li>
             <a
               href={`mailto:${business.email}`}
-              class="hover:text-white transition-colors"
+              class="text-[0.95rem] hover:text-white transition-colors duration-300"
             >
               {business.email}
             </a>
@@ -77,16 +83,17 @@ const socialIcons: Record<string, string> = {
         </ul>
       </div>
 
-      <div>
-        <h4 class="text-lg font-bold mb-4">Aukioloajat</h4>
-        <ul class="space-y-2 text-gray-300">
+      <!-- Hours column -->
+      <div class="lg:col-span-4">
+        <h4 class="text-sm font-semibold tracking-widest uppercase text-white/50 mb-6">Aukioloajat</h4>
+        <ul class="space-y-3 text-gray-400">
           {
             business.hours.map((item) => (
-              <li class="flex justify-between gap-4 text-sm">
+              <li class="flex justify-between gap-4 text-[0.9rem]">
                 <span>{item.day}</span>
                 <span
                   class={
-                    item.hours === "Suljettu" ? "text-red-400" : "text-white"
+                    item.hours === "Suljettu" ? "text-red-400/80" : "text-white/80 font-medium"
                   }
                 >
                   {item.hours}
@@ -98,8 +105,15 @@ const socialIcons: Record<string, string> = {
       </div>
     </div>
 
-    <div class="border-t border-white/10 mt-12 pt-8 text-center text-gray-400 text-sm">
-      <p>&copy; {year} {business.name}. Kaikki oikeudet pidatetaan.</p>
+    <!-- Bottom bar -->
+    <div class="mt-16 pt-8 border-t border-white/6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-gray-500 text-sm">
+        &copy; {year} {business.name}. Kaikki oikeudet pidatetaan.
+      </p>
+      <div class="flex items-center gap-1.5 text-gray-600 text-xs">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500/60 animate-pulse"></span>
+        Verkkopalvelu toimii normaalisti
+      </div>
     </div>
   </div>
 </footer>

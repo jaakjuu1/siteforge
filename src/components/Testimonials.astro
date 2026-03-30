@@ -5,25 +5,42 @@ const { testimonials, features } = siteConfig;
 if (!features.testimonials) return;
 ---
 
-<section id="arvostelut" class="py-20 md:py-28 bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16">
-      <h2 class="text-3xl md:text-4xl font-bold font-heading text-secondary mb-4">
+<section id="arvostelut" class="section-padding bg-gray-50/50 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+    <div class="text-center mb-16 md:mb-20 reveal">
+      <span class="inline-block text-sm font-semibold text-primary tracking-widest uppercase mb-4">
+        Arvostelut
+      </span>
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-secondary mb-5">
         Asiakkaidemme kokemuksia
       </h2>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+      <div class="divider-gradient w-24 mx-auto mb-6"></div>
+      <p class="text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
         Lue mita asiakkaamme kertovat meista
       </p>
     </div>
 
+    <!-- Masonry-style offset grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {
-        testimonials.map((testimonial) => (
-          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div class="flex gap-1 mb-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+        testimonials.map((testimonial, i) => (
+          <div
+            class={`reveal reveal-delay-${Math.min(i + 1, 4)} group bg-white rounded-2xl p-7 lg:p-8 border border-gray-100/80 card-hover ${i % 2 === 1 ? "lg:mt-8" : ""}`}
+            style={`box-shadow: var(--shadow-sm)`}
+          >
+            <!-- Quote mark -->
+            <div class="mb-5">
+              <svg class="w-8 h-8 text-primary/15" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+              </svg>
+            </div>
+
+            <!-- Stars with animation -->
+            <div class="flex gap-1 mb-5">
+              {Array.from({ length: 5 }).map((_, starIdx) => (
                 <svg
-                  class={`w-5 h-5 ${i < testimonial.rating ? "text-yellow-400" : "text-gray-200"}`}
+                  class={`w-4.5 h-4.5 star-animate ${starIdx < testimonial.rating ? "text-amber-400" : "text-gray-200"}`}
+                  style={`animation-delay: ${starIdx * 0.08 + i * 0.15}s`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -31,10 +48,21 @@ if (!features.testimonials) return;
                 </svg>
               ))}
             </div>
-            <p class="text-gray-600 mb-4 leading-relaxed italic">
-              "{testimonial.text}"
+
+            <!-- Quote text -->
+            <p class="text-gray-600 mb-6 leading-relaxed text-[0.95rem]">
+              &ldquo;{testimonial.text}&rdquo;
             </p>
-            <p class="font-semibold text-secondary">{testimonial.name}</p>
+
+            <!-- Author -->
+            <div class="flex items-center gap-3 pt-5 border-t border-gray-100">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">
+                  {testimonial.name.charAt(0)}
+                </span>
+              </div>
+              <span class="font-semibold text-secondary text-sm">{testimonial.name}</span>
+            </div>
           </div>
         ))
       }

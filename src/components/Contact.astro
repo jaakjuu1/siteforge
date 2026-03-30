@@ -4,88 +4,69 @@ import siteConfig from "../../site.config";
 const { business, features } = siteConfig;
 ---
 
-<section id="yhteystiedot" class="py-20 md:py-28 bg-white">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16">
-      <h2 class="text-3xl md:text-4xl font-bold font-heading text-secondary mb-4">
+<section id="yhteystiedot" class="section-padding bg-white">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+    <div class="text-center mb-16 md:mb-20 reveal">
+      <span class="inline-block text-sm font-semibold text-primary tracking-widest uppercase mb-4">
+        Yhteystiedot
+      </span>
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-secondary mb-5">
         Ota yhteytta
       </h2>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+      <div class="divider-gradient w-24 mx-auto mb-6"></div>
+      <p class="text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
         Varaa aikasi tai kysy lisatietoja - otamme mielellaamme yhteytta!
       </p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
       {
         features.contactForm && (
-          <div>
-            <form class="space-y-6" action="#" method="POST">
-              <div>
-                <label
-                  for="name"
-                  class="block text-sm font-medium text-secondary mb-2"
-                >
-                  Nimi
-                </label>
+          <div class="reveal">
+            <form class="space-y-5" action="#" method="POST">
+              <div class="form-field">
                 <input
                   type="text"
                   id="name"
                   name="name"
                   required
-                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
-                  placeholder="Etunimi Sukunimi"
+                  placeholder=" "
                 />
+                <label for="name">Nimi</label>
               </div>
-              <div>
-                <label
-                  for="email"
-                  class="block text-sm font-medium text-secondary mb-2"
-                >
-                  Sahkoposti
-                </label>
+              <div class="form-field">
                 <input
                   type="email"
                   id="email"
                   name="email"
                   required
-                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
-                  placeholder="nimi@esimerkki.fi"
+                  placeholder=" "
                 />
+                <label for="email">Sahkoposti</label>
               </div>
-              <div>
-                <label
-                  for="phone"
-                  class="block text-sm font-medium text-secondary mb-2"
-                >
-                  Puhelin
-                </label>
+              <div class="form-field">
                 <input
                   type="tel"
                   id="phone"
                   name="phone"
-                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
-                  placeholder="+358 40 123 4567"
+                  placeholder=" "
                 />
+                <label for="phone">Puhelin</label>
               </div>
-              <div>
-                <label
-                  for="message"
-                  class="block text-sm font-medium text-secondary mb-2"
-                >
-                  Viesti
-                </label>
+              <div class="form-field">
                 <textarea
                   id="message"
                   name="message"
                   rows="4"
                   required
-                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors resize-none"
-                  placeholder="Kirjoita viestisi tahan..."
+                  placeholder=" "
+                  style="resize: none"
                 />
+                <label for="message">Viesti</label>
               </div>
               <button
                 type="submit"
-                class="w-full bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-light transition-colors"
+                class="btn-primary w-full bg-primary text-white px-8 py-4 rounded-full font-semibold hover:bg-primary-light tracking-wide text-base"
               >
                 Laheta viesti
               </button>
@@ -94,47 +75,59 @@ const { business, features } = siteConfig;
         )
       }
 
-      <div class={features.contactForm ? "" : "lg:col-span-2 max-w-lg mx-auto"}>
-        <div class="space-y-8">
-          <div class="flex items-start gap-4">
-            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-              <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      <div class={`reveal reveal-delay-2 ${features.contactForm ? "" : "lg:col-span-2 max-w-lg mx-auto"}`}>
+        <div class="space-y-6">
+          <!-- Address -->
+          <div class="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50/80 transition-colors duration-300 group">
+            <div
+              class="w-13 h-13 bg-primary/8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-400 group-hover:bg-primary group-hover:shadow-md"
+              style="transition-timing-function: var(--ease-out-expo); width: 3.25rem; height: 3.25rem"
+            >
+              <svg class="w-5 h-5 text-primary transition-colors duration-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
             <div>
               <h3 class="font-bold text-secondary mb-1">Osoite</h3>
-              <p class="text-gray-600">
+              <p class="text-gray-500 leading-relaxed">
                 {business.address.street}<br />
                 {business.address.zip} {business.address.city}
               </p>
             </div>
           </div>
 
-          <div class="flex items-start gap-4">
-            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-              <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          <!-- Phone -->
+          <div class="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50/80 transition-colors duration-300 group">
+            <div
+              class="w-13 h-13 bg-primary/8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-400 group-hover:bg-primary group-hover:shadow-md"
+              style="transition-timing-function: var(--ease-out-expo); width: 3.25rem; height: 3.25rem"
+            >
+              <svg class="w-5 h-5 text-primary transition-colors duration-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
             </div>
             <div>
               <h3 class="font-bold text-secondary mb-1">Puhelin</h3>
-              <a href={`tel:${business.phone}`} class="text-primary hover:text-primary-light transition-colors">
+              <a href={`tel:${business.phone}`} class="text-primary hover:text-primary-light transition-colors duration-300 font-medium">
                 {business.phone}
               </a>
             </div>
           </div>
 
-          <div class="flex items-start gap-4">
-            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-              <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          <!-- Email -->
+          <div class="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50/80 transition-colors duration-300 group">
+            <div
+              class="w-13 h-13 bg-primary/8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-400 group-hover:bg-primary group-hover:shadow-md"
+              style="transition-timing-function: var(--ease-out-expo); width: 3.25rem; height: 3.25rem"
+            >
+              <svg class="w-5 h-5 text-primary transition-colors duration-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
               <h3 class="font-bold text-secondary mb-1">Sahkoposti</h3>
-              <a href={`mailto:${business.email}`} class="text-primary hover:text-primary-light transition-colors">
+              <a href={`mailto:${business.email}`} class="text-primary hover:text-primary-light transition-colors duration-300 font-medium">
                 {business.email}
               </a>
             </div>
@@ -142,11 +135,11 @@ const { business, features } = siteConfig;
 
           {
             features.googleMaps && (
-              <div class="mt-8 rounded-xl overflow-hidden shadow-sm border border-gray-100">
+              <div class="mt-4 rounded-2xl overflow-hidden border border-gray-100/80" style="box-shadow: var(--shadow-md)">
                 <iframe
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(`${business.address.street}, ${business.address.zip} ${business.address.city}`)}&output=embed`}
                   width="100%"
-                  height="300"
+                  height="280"
                   style="border:0"
                   loading="lazy"
                   referrerpolicy="no-referrer-when-downgrade"

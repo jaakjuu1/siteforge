@@ -7,31 +7,37 @@ const navItems = features.blog
   : navigation.filter((n) => n.href !== "/blog");
 ---
 
-<header class="bg-white shadow-sm sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16 md:h-20">
-      <a href="/" class="flex items-center gap-2 group">
+<header
+  id="site-header"
+  class="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+  style="transition-timing-function: var(--ease-out-expo)"
+>
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+    <div class="flex items-center justify-between h-18 md:h-22">
+      <a href="/" class="flex items-center gap-2.5 group relative z-10">
         <span
-          class="text-xl md:text-2xl font-bold font-heading text-primary group-hover:text-primary-light transition-colors"
+          class="text-xl md:text-2xl font-bold font-heading transition-colors duration-300"
+          id="header-logo"
         >
           {business.name}
         </span>
       </a>
 
-      <nav class="hidden md:flex items-center gap-8">
+      <nav class="hidden md:flex items-center gap-9">
         {
           navItems.map((item) => (
             <a
               href={item.href}
-              class="text-sm font-medium text-secondary hover:text-primary transition-colors"
+              class="relative text-sm font-medium tracking-wide transition-colors duration-300 nav-link"
             >
               {item.label}
+              <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary rounded-full transition-all duration-300" style="transition-timing-function: var(--ease-out-expo)" />
             </a>
           ))
         }
         <a
           href={`tel:${business.phone}`}
-          class="inline-flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-light transition-colors"
+          class="btn-primary inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-primary-light"
         >
           <svg
             class="w-4 h-4"
@@ -52,82 +58,147 @@ const navItems = features.blog
 
       <button
         id="mobile-menu-btn"
-        class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        class="md:hidden relative z-10 w-10 h-10 flex items-center justify-center rounded-xl transition-colors duration-300"
         aria-label="Avaa valikko"
         aria-expanded="false"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          id="menu-icon-open"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-        <svg
-          class="w-6 h-6 hidden"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          id="menu-icon-close"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
+        <div class="hamburger-icon" id="hamburger-icon">
+          <span class="block w-5 h-0.5 bg-current transition-all duration-300" style="transition-timing-function: var(--ease-out-expo)" id="bar-1"></span>
+          <span class="block w-5 h-0.5 bg-current mt-1.5 transition-all duration-300" style="transition-timing-function: var(--ease-out-expo)" id="bar-2"></span>
+          <span class="block w-3.5 h-0.5 bg-current mt-1.5 transition-all duration-300" style="transition-timing-function: var(--ease-out-expo)" id="bar-3"></span>
+        </div>
       </button>
     </div>
   </div>
 
-  <div id="mobile-menu" class="hidden md:hidden border-t bg-white">
-    <div class="px-4 py-4 space-y-3">
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="mobile-menu-enter md:hidden border-t border-gray-100/50">
+    <div class="glass-strong px-5 py-6 space-y-1">
       {
-        navItems.map((item) => (
+        navItems.map((item, i) => (
           <a
             href={item.href}
-            class="block text-base font-medium text-secondary hover:text-primary transition-colors py-2"
+            class="block text-base font-medium text-secondary hover:text-primary transition-colors duration-300 py-3 px-3 rounded-xl hover:bg-primary/5"
+            style={`transition-delay: ${i * 0.05}s`}
           >
             {item.label}
           </a>
         ))
       }
-      <a
-        href={`tel:${business.phone}`}
-        class="block text-center bg-primary text-white px-5 py-3 rounded-lg font-semibold hover:bg-primary-light transition-colors mt-4"
-      >
-        Soita: {business.phone}
-      </a>
+      <div class="pt-3">
+        <a
+          href={`tel:${business.phone}`}
+          class="btn-primary block text-center bg-primary text-white px-6 py-3.5 rounded-full font-semibold hover:bg-primary-light"
+        >
+          Soita: {business.phone}
+        </a>
+      </div>
     </div>
   </div>
 </header>
 
+<!-- Spacer for fixed header -->
+<div class="h-18 md:h-22"></div>
+
+<style>
+  .nav-link:hover span {
+    width: 100%;
+  }
+  .h-18 { height: 4.5rem; }
+  .h-22 { height: 5.5rem; }
+  .md\:h-22 { height: 5.5rem; }
+  @media (max-width: 767px) {
+    .md\:h-22 { height: 4.5rem; }
+  }
+
+  /* Hamburger to X animation */
+  .hamburger-open #bar-1 {
+    transform: rotate(45deg) translate(3px, 3px);
+  }
+  .hamburger-open #bar-2 {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  .hamburger-open #bar-3 {
+    width: 1.25rem;
+    transform: rotate(-45deg) translate(3px, -3px);
+  }
+</style>
+
 <script>
+  const header = document.getElementById("site-header");
   const btn = document.getElementById("mobile-menu-btn");
   const menu = document.getElementById("mobile-menu");
-  const iconOpen = document.getElementById("menu-icon-open");
-  const iconClose = document.getElementById("menu-icon-close");
+  const icon = document.getElementById("hamburger-icon");
+  const logo = document.getElementById("header-logo");
+  let isMenuOpen = false;
 
+  // Scroll-based header styling
+  const updateHeader = () => {
+    const scrolled = window.scrollY > 40;
+    if (header) {
+      if (scrolled) {
+        header.classList.add("glass-strong", "shadow-sm");
+        header.style.borderBottom = "1px solid rgba(0,0,0,0.04)";
+      } else {
+        header.classList.remove("glass-strong", "shadow-sm");
+        header.style.borderBottom = "none";
+        header.style.background = "";
+      }
+    }
+    // Nav link colors
+    const links = header?.querySelectorAll(".nav-link");
+    links?.forEach((link) => {
+      if (scrolled) {
+        link.classList.remove("text-white/90", "hover:text-white");
+        link.classList.add("text-secondary/70", "hover:text-primary");
+      } else {
+        link.classList.remove("text-secondary/70", "hover:text-primary");
+        link.classList.add("text-white/90", "hover:text-white");
+      }
+    });
+    // Logo color
+    if (logo) {
+      if (scrolled) {
+        logo.classList.remove("text-white");
+        logo.classList.add("text-secondary");
+      } else {
+        logo.classList.remove("text-secondary");
+        logo.classList.add("text-white");
+      }
+    }
+    // Mobile button color
+    if (btn) {
+      if (scrolled || isMenuOpen) {
+        btn.classList.remove("text-white");
+        btn.classList.add("text-secondary");
+      } else {
+        btn.classList.remove("text-secondary");
+        btn.classList.add("text-white");
+      }
+    }
+  };
+
+  window.addEventListener("scroll", updateHeader, { passive: true });
+  updateHeader();
+
+  // Mobile menu toggle
   btn?.addEventListener("click", () => {
-    const isOpen = menu?.classList.toggle("hidden");
-    iconOpen?.classList.toggle("hidden");
-    iconClose?.classList.toggle("hidden");
-    btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    isMenuOpen = !isMenuOpen;
+    menu?.classList.toggle("open");
+    icon?.parentElement?.classList.toggle("hamburger-open");
+    btn.setAttribute("aria-expanded", isMenuOpen ? "true" : "false");
+    updateHeader();
   });
 
   // Close on anchor click
   menu?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
-      menu.classList.add("hidden");
-      iconOpen?.classList.remove("hidden");
-      iconClose?.classList.add("hidden");
+      isMenuOpen = false;
+      menu.classList.remove("open");
+      icon?.parentElement?.classList.remove("hamburger-open");
       btn?.setAttribute("aria-expanded", "false");
+      updateHeader();
     });
   });
 </script>
