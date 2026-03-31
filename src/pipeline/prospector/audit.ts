@@ -1,244 +1,326 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { chromium } from "playwright";
+/**
+ * Website audit using PinchTab (primary) + Playwright (fallback).
+ * No Lighthouse needed — we check business pain signals directly.
+ */
 
-const execFileAsync = promisify(execFile);
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
-export interface LighthouseScores {
-  performance: number;
-  accessibility: number;
-  seo: number;
-  bestPractices: number;
-}
+const PINCHTAB = process.env.PINCHTAB_BIN ?? `${process.env.HOME}/.pinchtab/bin/0.7.6/pinchtab-linux-amd64`;
+const SCREENSHOT_DIR = path.resolve("data/screenshots");
+const TIMEOUT_MS = 15000;
 
 export interface CustomChecks {
   hasMobileCTA: boolean;
+  hasClickToCall: boolean;
   hasContactForm: boolean;
+  hasBookingWidget: boolean;
   hasHttps: boolean;
   hasSchemaOrg: boolean;
   hasGoogleMaps: boolean;
   mobileLoadTimeMs: number;
-  hasClickToCall: boolean;
-  hasBookingWidget: boolean;
+  hasModernDesign: boolean;
+  pageTitle: string;
+  textContent: string; // Raw text for AI analysis
 }
 
 export interface AuditResult {
   url: string;
-  lighthouse: LighthouseScores | null;
   checks: CustomChecks;
+  screenshots: {
+    desktop: string | null;
+    mobile: string | null;
+  };
   errors: string[];
 }
 
-// --- Lighthouse via CLI ---
-
-async function runLighthouse(url: string): Promise<LighthouseScores | null> {
+function runPinchtab(args: string): string | null {
   try {
-    const { stdout } = await execFileAsync(
-      "npx",
-      [
-        "lighthouse",
-        url,
-        "--output=json",
-        "--quiet",
-        "--chrome-flags=--headless --no-sandbox",
-        "--only-categories=performance,accessibility,seo,best-practices",
-      ],
-      { maxBuffer: 10 * 1024 * 1024, timeout: 120000 },
-    );
-
-    const report = JSON.parse(stdout) as {
-      categories: Record<string, { score: number | null }>;
-    };
-
-    return {
-      performance: (report.categories.performance?.score ?? 0) * 100,
-      accessibility: (report.categories.accessibility?.score ?? 0) * 100,
-      seo: (report.categories.seo?.score ?? 0) * 100,
-      bestPractices: (report.categories["best-practices"]?.score ?? 0) * 100,
-    };
+    return execSync(`${PINCHTAB} ${args}`, {
+      timeout: TIMEOUT_MS,
+      encoding: "utf-8",
+    }).trim();
   } catch (err) {
-    console.warn("Lighthouse failed:", (err as Error).message);
     return null;
   }
 }
 
-// --- Custom checks via Playwright ---
+function parsePinchtabJson(output: string | null): any {
+  if (!output) return null;
+  try {
+    return JSON.parse(output);
+  } catch {
+    return null;
+  }
+}
 
-async function runCustomChecks(url: string): Promise<CustomChecks> {
-  const checks: CustomChecks = {
-    hasMobileCTA: false,
-    hasContactForm: false,
-    hasHttps: url.startsWith("https://"),
-    hasSchemaOrg: false,
-    hasGoogleMaps: false,
-    mobileLoadTimeMs: 0,
-    hasClickToCall: false,
-    hasBookingWidget: false,
-  };
+/**
+ * Take screenshots via Playwright (mobile + desktop).
+ */
+async function takeScreenshots(url: string, domain: string): Promise<{ desktop: string | null; mobile: string | null }> {
+  fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const desktopPath = path.join(SCREENSHOT_DIR, `${domain}__desktop.png`);
+  const mobilePath = path.join(SCREENSHOT_DIR, `${domain}__mobile.png`);
 
   try {
-    const context = await browser.newContext({
-      viewport: { width: 390, height: 844 },
-      userAgent:
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
-      isMobile: true,
-    });
-    const page = await context.newPage();
+    const { chromium, devices } = await import("playwright");
+    const browser = await chromium.launch({ headless: true });
 
-    const startTime = Date.now();
-    await page.goto(url, { waitUntil: "load", timeout: 30000 });
-    checks.mobileLoadTimeMs = Date.now() - startTime;
+    // Desktop
+    const desktopPage = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+    await desktopPage.goto(url, { waitUntil: "load", timeout: 20000 }).catch(() => {});
+    await desktopPage.waitForTimeout(2000);
+    await desktopPage.screenshot({ path: desktopPath, fullPage: false });
 
-    const html = await page.content();
-    const htmlLower = html.toLowerCase();
+    // Mobile
+    const mobilePage = await browser.newPage({ ...devices["iPhone 14 Pro"] });
+    await mobilePage.goto(url, { waitUntil: "load", timeout: 20000 }).catch(() => {});
+    await mobilePage.waitForTimeout(2000);
+    await mobilePage.screenshot({ path: mobilePath, fullPage: false });
 
-    // Check for click-to-call (tel: links)
-    checks.hasClickToCall = htmlLower.includes('href="tel:');
-
-    // Check for mobile CTA (prominent call/book buttons)
-    checks.hasMobileCTA =
-      checks.hasClickToCall ||
-      (await page
-        .locator(
-          'a[href*="tel:"], button:has-text("Soita"), button:has-text("Varaa"), a:has-text("Soita"), a:has-text("Varaa"), a:has-text("Ota yhteyttä")',
-        )
-        .count()) > 0;
-
-    // Check for contact/booking form
-    checks.hasContactForm =
-      (await page.locator("form").count()) > 0 ||
-      htmlLower.includes("contact-form") ||
-      htmlLower.includes("booking-form") ||
-      htmlLower.includes("yhteydenottolomake");
-
-    // Check for booking widget (common Finnish booking systems)
-    checks.hasBookingWidget =
-      htmlLower.includes("timma.fi") ||
-      htmlLower.includes("vello.fi") ||
-      htmlLower.includes("ajanvaraus") ||
-      htmlLower.includes("slotti") ||
-      htmlLower.includes("calendly") ||
-      htmlLower.includes("bookeo");
-
-    // Check for Schema.org LocalBusiness
-    checks.hasSchemaOrg =
-      htmlLower.includes("localbusiness") ||
-      htmlLower.includes("schema.org") ||
-      htmlLower.includes('"@type"');
-
-    // Check for Google Maps embed
-    checks.hasGoogleMaps =
-      htmlLower.includes("maps.google") ||
-      htmlLower.includes("google.com/maps") ||
-      htmlLower.includes("maps.googleapis");
-
-    await context.close();
-  } catch (err) {
-    console.warn("Custom checks partially failed:", (err as Error).message);
-  } finally {
     await browser.close();
+  } catch (err) {
+    console.warn(`  ⚠️ Playwright screenshots failed: ${(err as Error).message}`);
   }
 
-  return checks;
+  return {
+    desktop: fs.existsSync(desktopPath) ? desktopPath : null,
+    mobile: fs.existsSync(mobilePath) ? mobilePath : null,
+  };
 }
 
-// --- Main audit function ---
+/**
+ * Analyze page content via PinchTab text extraction.
+ */
+function analyzeContent(url: string): {
+  text: string;
+  title: string;
+  checks: Partial<CustomChecks>;
+} {
+  // Navigate
+  runPinchtab(`nav "${url}"`);
+  execSync("sleep 3");
 
-export async function auditWebsite(websiteUrl: string): Promise<AuditResult> {
-  let url = websiteUrl;
-  if (!url.startsWith("http")) {
-    url = `https://${url}`;
+  // Get text content (token-efficient!)
+  const textOutput = runPinchtab("text -c");
+  const textData = parsePinchtabJson(textOutput);
+  const text = textData?.text ?? "";
+  const title = textData?.title ?? "";
+
+  // Get interactive elements for CTA/form detection
+  const snapOutput = runPinchtab("snap -i -c");
+  const snapData = parsePinchtabJson(snapOutput);
+  const nodes = snapData?.nodes ?? [];
+
+  const textLower = text.toLowerCase();
+  const allNodeText = nodes.map((n: any) => `${n.tag ?? ""} ${n.text ?? ""} ${n.href ?? ""} ${n.type ?? ""}`).join(" ").toLowerCase();
+
+  const checks: Partial<CustomChecks> = {
+    // Click-to-call: tel: links
+    hasClickToCall: allNodeText.includes("tel:") || allNodeText.includes("soita"),
+
+    // Mobile CTA: any prominent button/link with action words
+    hasMobileCTA:
+      allNodeText.includes("varaa") ||
+      allNodeText.includes("ajanvaraus") ||
+      allNodeText.includes("ota yhteyttä") ||
+      allNodeText.includes("soita") ||
+      allNodeText.includes("book") ||
+      allNodeText.includes("contact"),
+
+    // Contact form: form elements
+    hasContactForm:
+      allNodeText.includes("<form") ||
+      allNodeText.includes("input") ||
+      allNodeText.includes("textarea") ||
+      allNodeText.includes("lomake") ||
+      nodes.some((n: any) => n.tag === "form" || n.tag === "textarea"),
+
+    // Booking widget: known booking services
+    hasBookingWidget:
+      textLower.includes("timma") ||
+      textLower.includes("vello") ||
+      textLower.includes("calendly") ||
+      textLower.includes("bookings") ||
+      textLower.includes("ajanvaraus") ||
+      allNodeText.includes("timma.fi") ||
+      allNodeText.includes("vello.fi"),
+
+    // HTTPS
+    hasHttps: url.startsWith("https://"),
+
+    // Schema.org (check page source)
+    hasSchemaOrg: false, // Will be checked separately
+
+    // Google Maps
+    hasGoogleMaps:
+      textLower.includes("google.com/maps") ||
+      textLower.includes("maps.google") ||
+      allNodeText.includes("maps.google") ||
+      allNodeText.includes("gmap"),
+
+    // Modern design heuristics
+    hasModernDesign:
+      allNodeText.includes("tailwind") ||
+      allNodeText.includes("next") ||
+      allNodeText.includes("react") ||
+      allNodeText.includes("vue") ||
+      allNodeText.includes("webflow"),
+
+    pageTitle: title,
+    textContent: text.slice(0, 2000), // Keep first 2000 chars for AI analysis
+  };
+
+  return { text, title, checks };
+}
+
+/**
+ * Check Schema.org via page source.
+ */
+function checkSchemaOrg(url: string): boolean {
+  try {
+    const result = execSync(
+      `curl -s -L --max-time 10 "${url}" | grep -c "schema.org\\|application/ld+json"`,
+      { encoding: "utf-8", timeout: 15000 },
+    );
+    return parseInt(result.trim(), 10) > 0;
+  } catch {
+    return false;
   }
+}
 
+/**
+ * Check mobile load time.
+ */
+function checkLoadTime(url: string): number {
+  try {
+    const result = execSync(
+      `curl -s -o /dev/null -w "%{time_total}" --max-time 15 -L "${url}"`,
+      { encoding: "utf-8", timeout: 20000 },
+    );
+    return Math.round(parseFloat(result.trim()) * 1000);
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Full audit of a website.
+ */
+export async function auditWebsite(url: string): Promise<AuditResult> {
   const errors: string[] = [];
 
-  // Run Lighthouse and custom checks in parallel
-  const [lighthouse, checks] = await Promise.all([
-    runLighthouse(url).catch((err) => {
-      errors.push(`Lighthouse: ${(err as Error).message}`);
-      return null;
-    }),
-    runCustomChecks(url).catch((err) => {
-      errors.push(`Custom checks: ${(err as Error).message}`);
-      return {
-        hasMobileCTA: false,
-        hasContactForm: false,
-        hasHttps: false,
-        hasSchemaOrg: false,
-        hasGoogleMaps: false,
-        mobileLoadTimeMs: 0,
-        hasClickToCall: false,
-        hasBookingWidget: false,
-      } satisfies CustomChecks;
-    }),
-  ]);
+  // Extract domain for file naming
+  let domain: string;
+  try {
+    domain = new URL(url).hostname.replace("www.", "");
+  } catch {
+    domain = url.replace(/https?:\/\//, "").replace(/\//g, "_");
+  }
 
-  return { url, lighthouse, checks, errors };
+  console.log(`  🔍 Navigating to ${url}...`);
+
+  // 1. Analyze content via PinchTab
+  let contentAnalysis: ReturnType<typeof analyzeContent>;
+  try {
+    contentAnalysis = analyzeContent(url);
+  } catch (err) {
+    errors.push(`Content analysis failed: ${(err as Error).message}`);
+    contentAnalysis = {
+      text: "",
+      title: "",
+      checks: {},
+    };
+  }
+
+  // 2. Screenshots
+  console.log("  📸 Taking screenshots...");
+  let screenshots = { desktop: null as string | null, mobile: null as string | null };
+  try {
+    screenshots = await takeScreenshots(url, domain);
+  } catch (err) {
+    errors.push(`Screenshots failed: ${(err as Error).message}`);
+  }
+
+  // 3. Schema.org check
+  console.log("  🏗️ Checking Schema.org...");
+  const hasSchemaOrg = checkSchemaOrg(url);
+
+  // 4. Load time
+  console.log("  ⏱️ Checking load time...");
+  const loadTime = checkLoadTime(url);
+
+  const checks: CustomChecks = {
+    hasMobileCTA: contentAnalysis.checks.hasMobileCTA ?? false,
+    hasClickToCall: contentAnalysis.checks.hasClickToCall ?? false,
+    hasContactForm: contentAnalysis.checks.hasContactForm ?? false,
+    hasBookingWidget: contentAnalysis.checks.hasBookingWidget ?? false,
+    hasHttps: contentAnalysis.checks.hasHttps ?? url.startsWith("https://"),
+    hasSchemaOrg,
+    hasGoogleMaps: contentAnalysis.checks.hasGoogleMaps ?? false,
+    mobileLoadTimeMs: loadTime,
+    hasModernDesign: contentAnalysis.checks.hasModernDesign ?? false,
+    pageTitle: contentAnalysis.checks.pageTitle ?? "",
+    textContent: contentAnalysis.checks.textContent ?? "",
+  };
+
+  console.log("  ✅ Audit complete");
+
+  return { url, checks, screenshots, errors };
 }
 
-// --- CLI ---
+/**
+ * Quick audit without screenshots (faster).
+ */
+export async function quickAudit(url: string): Promise<AuditResult> {
+  const errors: string[] = [];
+  let domain: string;
+  try {
+    domain = new URL(url).hostname.replace("www.", "");
+  } catch {
+    domain = "unknown";
+  }
 
-async function main() {
+  // Just content + schema + load time, no screenshots
+  let contentAnalysis: ReturnType<typeof analyzeContent>;
+  try {
+    contentAnalysis = analyzeContent(url);
+  } catch (err) {
+    errors.push(`Content analysis failed: ${(err as Error).message}`);
+    contentAnalysis = { text: "", title: "", checks: {} };
+  }
+
+  const hasSchemaOrg = checkSchemaOrg(url);
+  const loadTime = checkLoadTime(url);
+
+  const checks: CustomChecks = {
+    hasMobileCTA: contentAnalysis.checks.hasMobileCTA ?? false,
+    hasClickToCall: contentAnalysis.checks.hasClickToCall ?? false,
+    hasContactForm: contentAnalysis.checks.hasContactForm ?? false,
+    hasBookingWidget: contentAnalysis.checks.hasBookingWidget ?? false,
+    hasHttps: url.startsWith("https://"),
+    hasSchemaOrg,
+    hasGoogleMaps: contentAnalysis.checks.hasGoogleMaps ?? false,
+    mobileLoadTimeMs: loadTime,
+    hasModernDesign: contentAnalysis.checks.hasModernDesign ?? false,
+    pageTitle: contentAnalysis.checks.pageTitle ?? "",
+    textContent: contentAnalysis.checks.textContent ?? "",
+  };
+
+  return { url, checks, screenshots: { desktop: null, mobile: null }, errors };
+}
+
+// CLI
+if (import.meta.url === `file://${process.argv[1]}`) {
   const url = process.argv[2];
   if (!url) {
-    console.error("Usage: tsx src/pipeline/prospector/audit.ts <url>");
+    console.log("Usage: tsx src/pipeline/prospector/audit.ts <url>");
     process.exit(1);
   }
-
-  console.log(`🔍 Auditing ${url}...\n`);
-  const result = await auditWebsite(url);
-
-  if (result.lighthouse) {
-    console.log("Lighthouse Scores:");
-    console.log(`  Performance:    ${result.lighthouse.performance.toFixed(0)}`);
-    console.log(
-      `  Accessibility:  ${result.lighthouse.accessibility.toFixed(0)}`,
-    );
-    console.log(`  SEO:            ${result.lighthouse.seo.toFixed(0)}`);
-    console.log(
-      `  Best Practices: ${result.lighthouse.bestPractices.toFixed(0)}`,
-    );
-  } else {
-    console.log("Lighthouse: ❌ Failed");
-  }
-
-  console.log("\nCustom Checks:");
-  console.log(
-    `  Mobile CTA:     ${result.checks.hasMobileCTA ? "✅" : "❌"}`,
-  );
-  console.log(
-    `  Click-to-call:  ${result.checks.hasClickToCall ? "✅" : "❌"}`,
-  );
-  console.log(
-    `  Contact form:   ${result.checks.hasContactForm ? "✅" : "❌"}`,
-  );
-  console.log(
-    `  Booking widget: ${result.checks.hasBookingWidget ? "✅" : "❌"}`,
-  );
-  console.log(`  HTTPS:          ${result.checks.hasHttps ? "✅" : "❌"}`);
-  console.log(
-    `  Schema.org:     ${result.checks.hasSchemaOrg ? "✅" : "❌"}`,
-  );
-  console.log(
-    `  Google Maps:    ${result.checks.hasGoogleMaps ? "✅" : "❌"}`,
-  );
-  console.log(
-    `  Mobile load:    ${result.checks.mobileLoadTimeMs}ms`,
-  );
-
-  if (result.errors.length > 0) {
-    console.log("\nErrors:");
-    for (const e of result.errors) {
-      console.log(`  ⚠️  ${e}`);
-    }
-  }
-}
-
-const isMain =
-  process.argv[1]?.endsWith("audit.ts") ||
-  process.argv[1]?.endsWith("audit.js");
-if (isMain) {
-  main();
+  auditWebsite(url).then((result) => {
+    console.log("\n📊 Audit Results:");
+    console.log(JSON.stringify(result, null, 2));
+  });
 }

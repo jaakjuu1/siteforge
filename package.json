@@ -26,7 +26,6 @@
     "astro": "^6.1.2",
     "better-sqlite3": "^12.8.0",
     "commander": "^14.0.3",
-    "lighthouse": "^13.0.3",
     "nodemailer": "^8.0.4",
     "playwright": "^1.58.2",
     "tailwindcss": "^4.2.2",
