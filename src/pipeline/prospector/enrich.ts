@@ -360,8 +360,8 @@ async function main() {
   if (prospectId) {
     await enrichProspect(prospectId);
   } else {
-    // Enrich all prospects with websites but missing email
-    const prospects = listProspects({ city: "Oulu" });
+    // Only enrich QUALIFIED prospects (pain score >= 5)
+    const prospects = listProspects({ city: "Oulu", status: "qualified" });
     const needsEnrichment = prospects.filter(
       (p) => p.website && (!p.email || !p.phone),
     );
