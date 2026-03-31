@@ -12,6 +12,35 @@ export interface SiteforgeFitResult {
   notes: string[];
 }
 
+function isChainOrEnterprise(audit: AuditResult): { match: boolean; reason?: string } {
+  const text = `${audit.checks.pageTitle} ${audit.checks.textContent}`.toLowerCase();
+  const chainSignals = [
+    "terveystalo",
+    "mehiläinen",
+    "pihlajalinna",
+    "coronaria",
+    "plusterveys",
+    "specsavers",
+    "synsam",
+    "instrumentarium",
+    "ketju",
+    "toimipisteet",
+    "valtakunnallinen",
+    "franchise",
+    "konserni",
+  ];
+
+  if (chainSignals.some((s) => text.includes(s))) {
+    return { match: true, reason: "chain_or_enterprise" };
+  }
+
+  if (audit.checks.locationCount >= 4) {
+    return { match: true, reason: "chain_or_enterprise:multi_location" };
+  }
+
+  return { match: false };
+}
+
 export function calculatePainScore(audit: AuditResult): ScoreResult {
   let score = 0;
   const painPoints: string[] = [];
@@ -29,59 +58,43 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
 
   if (!checks.hasMobileCTA && !checks.hasClickToCall) {
     score += 2;
-    painPoints.push(
-      "Ei mobiili-CTA:ta tai soittopainiketta — menetät ~30% puheluista mobiililta",
-    );
+    painPoints.push("Ei mobiili-CTA:ta tai soittopainiketta — menetät ~30% puheluista mobiililta");
   }
 
   if (!checks.hasContactForm && !checks.hasBookingWidget) {
     score += 2;
-    painPoints.push(
-      "Ei yhteydenottolomaketta tai ajanvarausta — potentiaaliset asiakkaat poistuvat",
-    );
+    painPoints.push("Ei yhteydenottolomaketta tai ajanvarausta — potentiaaliset asiakkaat poistuvat");
   }
 
   if (!checks.hasHttps) {
     score += 1;
-    painPoints.push(
-      'HTTPS puuttuu — Google Chrome näyttää "Ei turvallinen" -varoituksen',
-    );
+    painPoints.push('HTTPS puuttuu — Google Chrome näyttää "Ei turvallinen" -varoituksen');
   }
 
   if (!checks.hasSchemaOrg) {
     score += 1;
-    painPoints.push(
-      "Ei Schema.org-merkintöjä — Google ei näytä rikastettuja hakutuloksia (tähdet, aukioloajat)",
-    );
+    painPoints.push("Ei Schema.org-merkintöjä — Google ei näytä rikastettuja hakutuloksia (tähdet, aukioloajat)");
   }
 
   if (checks.mobileLoadTimeMs > 4000) {
     score += 1;
     const secs = (checks.mobileLoadTimeMs / 1000).toFixed(1);
-    painPoints.push(
-      `Mobiilisivun latausaika ${secs}s — 53% käyttäjistä poistuu yli 3s latausajalla`,
-    );
+    painPoints.push(`Mobiilisivun latausaika ${secs}s — 53% käyttäjistä poistuu yli 3s latausajalla`);
   }
 
   if (!checks.hasGoogleMaps) {
     score += 1;
-    painPoints.push(
-      "Ei Google Maps -upotusta — vaikeuttaa asiakkaiden navigointia paikalle",
-    );
+    painPoints.push("Ei Google Maps -upotusta — vaikeuttaa asiakkaiden navigointia paikalle");
   }
 
   if (audit.lighthouse && audit.lighthouse.performance < 50) {
     score += 1;
-    painPoints.push(
-      `Lighthouse-suorituskykypistemäärä ${audit.lighthouse.performance.toFixed(0)}/100 — hidas sivu karkottaa asiakkaita`,
-    );
+    painPoints.push(`Lighthouse-suorituskykypistemäärä ${audit.lighthouse.performance.toFixed(0)}/100 — hidas sivu karkottaa asiakkaita`);
   }
 
   if (audit.lighthouse && audit.lighthouse.seo < 70 && score < 10) {
     score += 1;
-    painPoints.push(
-      `SEO-pistemäärä ${audit.lighthouse.seo.toFixed(0)}/100 — sivu ei sijoitu hauissa niin hyvin kuin voisi`,
-    );
+    painPoints.push(`SEO-pistemäärä ${audit.lighthouse.seo.toFixed(0)}/100 — sivu ei sijoitu hauissa niin hyvin kuin voisi`);
   }
 
   return {
@@ -93,25 +106,31 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
 export function calculateSiteforgeFit(audit: AuditResult): SiteforgeFitResult {
   const checks = audit.checks;
   const notes: string[] = [];
-
   let score = 10;
   let disqualifiedReason: string | null = null;
 
+  const chain = isChainOrEnterprise(audit);
+  if (chain.match) {
+    score = 0;
+    disqualifiedReason = chain.reason ?? "chain_or_enterprise";
+    notes.push("Yritys näyttää ketjulta / enterprise-toimijalta, ei meidän sweet spot.");
+  }
+
   if (checks.hasEcommerce) {
     score -= 7;
-    disqualifiedReason = "advanced_functionality:ecommerce";
+    disqualifiedReason = disqualifiedReason ?? "advanced_functionality:ecommerce";
     notes.push("Sivulla on verkkokauppa / ostoskori / tuotekatalogi.");
   }
 
   if (checks.hasPortalOrMemberArea) {
     score -= 4;
-    disqualifiedReason ??= "advanced_functionality:portal";
+    disqualifiedReason = disqualifiedReason ?? "advanced_functionality:portal";
     notes.push("Sivulla on kirjautuminen / portaali / jäsenalue.");
   }
 
   if (checks.hasAdvancedBookingFlow) {
     score -= 3;
-    disqualifiedReason ??= "advanced_functionality:booking";
+    disqualifiedReason = disqualifiedReason ?? "advanced_functionality:booking";
     notes.push("Sivulla on varsinainen ajanvarausjärjestelmä, ei vain CTA-linkki.");
   }
 
@@ -125,7 +144,7 @@ export function calculateSiteforgeFit(audit: AuditResult): SiteforgeFitResult {
     notes.push("Nykyinen sivu näyttää jo teknisesti melko modernilta.");
   }
 
-  if (!checks.hasEcommerce && !checks.hasPortalOrMemberArea && !checks.hasAdvancedBookingFlow) {
+  if (!checks.hasEcommerce && !checks.hasPortalOrMemberArea && !checks.hasAdvancedBookingFlow && !chain.match) {
     score += 1;
     notes.push("Sopii hyvin kevyeen SiteForge-uudistukseen.");
   }
@@ -162,9 +181,7 @@ function main() {
   console.log("Score module loaded.");
 }
 
-const isMain =
-  process.argv[1]?.endsWith("score.ts") ||
-  process.argv[1]?.endsWith("score.js");
+const isMain = process.argv[1]?.endsWith("score.ts") || process.argv[1]?.endsWith("score.js");
 if (isMain) {
   main();
 }
