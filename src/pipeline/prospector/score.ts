@@ -5,11 +5,17 @@ export interface ScoreResult {
   painPoints: string[];
 }
 
+export interface SiteforgeFitResult {
+  score: number;
+  fitStatus: "good_fit" | "needs_review" | "disqualified";
+  disqualifiedReason: string | null;
+  notes: string[];
+}
+
 export function calculatePainScore(audit: AuditResult): ScoreResult {
   let score = 0;
   const painPoints: string[] = [];
 
-    // Graceful fallback if checks is null/undefined
   const checks = audit.checks ?? {
     hasMobileCTA: false,
     hasContactForm: false,
@@ -21,7 +27,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     hasBookingWidget: false,
   };
 
-// No mobile CTA / click-to-call (2 pts)
   if (!checks.hasMobileCTA && !checks.hasClickToCall) {
     score += 2;
     painPoints.push(
@@ -29,7 +34,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // No booking/contact form (2 pts)
   if (!checks.hasContactForm && !checks.hasBookingWidget) {
     score += 2;
     painPoints.push(
@@ -37,7 +41,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // No HTTPS (1 pt)
   if (!checks.hasHttps) {
     score += 1;
     painPoints.push(
@@ -45,7 +48,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // No Schema.org (1 pt)
   if (!checks.hasSchemaOrg) {
     score += 1;
     painPoints.push(
@@ -53,7 +55,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // Slow mobile load > 4s (1 pt)
   if (checks.mobileLoadTimeMs > 4000) {
     score += 1;
     const secs = (checks.mobileLoadTimeMs / 1000).toFixed(1);
@@ -62,7 +63,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // No Google Maps (1 pt — proxy for poor local SEO / no reviews integration)
   if (!checks.hasGoogleMaps) {
     score += 1;
     painPoints.push(
@@ -70,7 +70,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // Poor Lighthouse performance < 50 (1 pt)
   if (audit.lighthouse && audit.lighthouse.performance < 50) {
     score += 1;
     painPoints.push(
@@ -78,8 +77,6 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
     );
   }
 
-  // Poor Lighthouse SEO < 70 (bonus signal, not counted in score to avoid >10)
-  // We keep total max at 10
   if (audit.lighthouse && audit.lighthouse.seo < 70 && score < 10) {
     score += 1;
     painPoints.push(
@@ -93,20 +90,76 @@ export function calculatePainScore(audit: AuditResult): ScoreResult {
   };
 }
 
-// --- CLI ---
+export function calculateSiteforgeFit(audit: AuditResult): SiteforgeFitResult {
+  const checks = audit.checks;
+  const notes: string[] = [];
+
+  let score = 10;
+  let disqualifiedReason: string | null = null;
+
+  if (checks.hasEcommerce) {
+    score -= 7;
+    disqualifiedReason = "advanced_functionality:ecommerce";
+    notes.push("Sivulla on verkkokauppa / ostoskori / tuotekatalogi.");
+  }
+
+  if (checks.hasPortalOrMemberArea) {
+    score -= 4;
+    disqualifiedReason ??= "advanced_functionality:portal";
+    notes.push("Sivulla on kirjautuminen / portaali / jäsenalue.");
+  }
+
+  if (checks.hasAdvancedBookingFlow) {
+    score -= 3;
+    disqualifiedReason ??= "advanced_functionality:booking";
+    notes.push("Sivulla on varsinainen ajanvarausjärjestelmä, ei vain CTA-linkki.");
+  }
+
+  if (checks.locationCount > 1) {
+    score -= 2;
+    notes.push(`Yrityksellä on ${checks.locationCount} toimipistettä — monimutkaisempi rakenne.`);
+  }
+
+  if (checks.hasModernDesign) {
+    score -= 1;
+    notes.push("Nykyinen sivu näyttää jo teknisesti melko modernilta.");
+  }
+
+  if (!checks.hasEcommerce && !checks.hasPortalOrMemberArea && !checks.hasAdvancedBookingFlow) {
+    score += 1;
+    notes.push("Sopii hyvin kevyeen SiteForge-uudistukseen.");
+  }
+
+  score = Math.max(0, Math.min(10, score));
+
+  if (disqualifiedReason || score <= 3) {
+    return {
+      score,
+      fitStatus: "disqualified",
+      disqualifiedReason: disqualifiedReason ?? "low_fit_score",
+      notes,
+    };
+  }
+
+  if (score <= 6) {
+    return {
+      score,
+      fitStatus: "needs_review",
+      disqualifiedReason: null,
+      notes,
+    };
+  }
+
+  return {
+    score,
+    fitStatus: "good_fit",
+    disqualifiedReason: null,
+    notes,
+  };
+}
 
 function main() {
-  console.log("Score module loaded. Use with audit results.");
-  console.log("Example pain scoring weights:");
-  console.log("  No mobile CTA:     2 pts");
-  console.log("  No contact form:   2 pts");
-  console.log("  No HTTPS:          1 pt");
-  console.log("  No Schema.org:     1 pt");
-  console.log("  Slow mobile >4s:   1 pt");
-  console.log("  No Google Maps:    1 pt");
-  console.log("  Poor performance:  1 pt");
-  console.log("  Poor SEO:          1 pt");
-  console.log("  Max score:         10");
+  console.log("Score module loaded.");
 }
 
 const isMain =

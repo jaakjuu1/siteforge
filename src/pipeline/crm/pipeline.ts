@@ -8,8 +8,6 @@ import type {
   ClientStatus,
 } from "./schema.js";
 
-// --- Prospect operations ---
-
 export interface InsertProspect {
   business_name: string;
   city: string;
@@ -25,9 +23,7 @@ export function upsertProspect(data: InsertProspect): Prospect {
   const db = getDb();
 
   const existing = db
-    .prepare(
-      "SELECT id FROM prospects WHERE business_name = ? AND city = ?",
-    )
+    .prepare("SELECT id FROM prospects WHERE business_name = ? AND city = ?")
     .get(data.business_name, data.city) as { id: number } | undefined;
 
   if (existing) {
@@ -73,19 +69,12 @@ export function upsertProspect(data: InsertProspect): Prospect {
 }
 
 export function getProspect(id: number): Prospect | undefined {
-  return getDb().prepare("SELECT * FROM prospects WHERE id = ?").get(id) as
-    | Prospect
-    | undefined;
+  return getDb().prepare("SELECT * FROM prospects WHERE id = ?").get(id) as Prospect | undefined;
 }
 
-export function updateProspectStatus(
-  id: number,
-  status: ProspectStatus,
-): void {
+export function updateProspectStatus(id: number, status: ProspectStatus): void {
   getDb()
-    .prepare(
-      "UPDATE prospects SET status = ?, updated_at = datetime('now') WHERE id = ?",
-    )
+    .prepare("UPDATE prospects SET status = ?, updated_at = datetime('now') WHERE id = ?")
     .run(status, id);
 }
 
@@ -94,9 +83,12 @@ export function updateProspectAudit(
   data: {
     screenshot_desktop?: string;
     screenshot_mobile?: string;
-    lighthouse_score?: number;
+    lighthouse_score?: number | null;
     pain_score?: number;
-    pain_points?: string[];
+    siteforge_fit_score?: number;
+    fit_status?: string;
+    disqualified_reason?: string | null;
+    pain_points?: string[] | string;
   },
 ): void {
   const db = getDb();
@@ -119,24 +111,35 @@ export function updateProspectAudit(
     sets.push("pain_score = ?");
     vals.push(data.pain_score);
   }
+  if (data.siteforge_fit_score !== undefined) {
+    sets.push("siteforge_fit_score = ?");
+    vals.push(data.siteforge_fit_score);
+  }
+  if (data.fit_status !== undefined) {
+    sets.push("fit_status = ?");
+    vals.push(data.fit_status);
+  }
+  if (data.disqualified_reason !== undefined) {
+    sets.push("disqualified_reason = ?");
+    vals.push(data.disqualified_reason);
+  }
   if (data.pain_points !== undefined) {
     sets.push("pain_points = ?");
-    vals.push(JSON.stringify(data.pain_points));
+    vals.push(Array.isArray(data.pain_points) ? JSON.stringify(data.pain_points) : data.pain_points);
   }
 
   if (sets.length === 0) return;
 
   sets.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE prospects SET ${sets.join(", ")} WHERE id = ?`).run(
-    ...vals,
-    id,
-  );
+  db.prepare(`UPDATE prospects SET ${sets.join(", ")} WHERE id = ?`).run(...vals, id);
 }
 
 export function listProspects(filters?: {
   status?: ProspectStatus;
   city?: string;
   minPainScore?: number;
+  minFitScore?: number;
+  fitStatus?: string;
 }): Prospect[] {
   const db = getDb();
   const where: string[] = [];
@@ -154,41 +157,35 @@ export function listProspects(filters?: {
     where.push("pain_score >= ?");
     vals.push(filters.minPainScore);
   }
+  if (filters?.minFitScore !== undefined) {
+    where.push("siteforge_fit_score >= ?");
+    vals.push(filters.minFitScore);
+  }
+  if (filters?.fitStatus) {
+    where.push("fit_status = ?");
+    vals.push(filters.fitStatus);
+  }
 
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   return db
-    .prepare(`SELECT * FROM prospects ${clause} ORDER BY pain_score DESC`)
+    .prepare(`SELECT * FROM prospects ${clause} ORDER BY COALESCE(siteforge_fit_score, 0) DESC, COALESCE(pain_score, 0) DESC`)
     .all(...vals) as Prospect[];
 }
 
-// --- Interaction operations ---
-
-export function addInteraction(
-  prospectId: number,
-  type: InteractionType,
-  content: string,
-): Interaction {
+export function addInteraction(prospectId: number, type: InteractionType, content: string): Interaction {
   const db = getDb();
   const result = db
-    .prepare(
-      "INSERT INTO interactions (prospect_id, type, content) VALUES (?, ?, ?)",
-    )
+    .prepare("INSERT INTO interactions (prospect_id, type, content) VALUES (?, ?, ?)")
     .run(prospectId, type, content);
 
-  return db
-    .prepare("SELECT * FROM interactions WHERE id = ?")
-    .get(Number(result.lastInsertRowid)) as Interaction;
+  return db.prepare("SELECT * FROM interactions WHERE id = ?").get(Number(result.lastInsertRowid)) as Interaction;
 }
 
 export function getInteractions(prospectId: number): Interaction[] {
   return getDb()
-    .prepare(
-      "SELECT * FROM interactions WHERE prospect_id = ? ORDER BY created_at DESC",
-    )
+    .prepare("SELECT * FROM interactions WHERE prospect_id = ? ORDER BY created_at DESC")
     .all(prospectId) as Interaction[];
 }
-
-// --- Client operations ---
 
 export function createClient(
   prospectId: number,
@@ -220,18 +217,14 @@ export function createClient(
       data?.setup_price ?? 1200,
     );
 
-  return db
-    .prepare("SELECT * FROM clients WHERE id = ?")
-    .get(Number(result.lastInsertRowid)) as Client;
+  return db.prepare("SELECT * FROM clients WHERE id = ?").get(Number(result.lastInsertRowid)) as Client;
 }
 
 export function updateClientStatus(id: number, status: ClientStatus): void {
   getDb().prepare("UPDATE clients SET status = ? WHERE id = ?").run(status, id);
 
   if (status === "live") {
-    const client = getDb()
-      .prepare("SELECT prospect_id FROM clients WHERE id = ?")
-      .get(id) as { prospect_id: number };
+    const client = getDb().prepare("SELECT prospect_id FROM clients WHERE id = ?").get(id) as { prospect_id: number };
     updateProspectStatus(client.prospect_id, "active");
   }
 }
@@ -239,14 +232,10 @@ export function updateClientStatus(id: number, status: ClientStatus): void {
 export function listClients(status?: ClientStatus): Client[] {
   const db = getDb();
   if (status) {
-    return db
-      .prepare("SELECT * FROM clients WHERE status = ?")
-      .all(status) as Client[];
+    return db.prepare("SELECT * FROM clients WHERE status = ?").all(status) as Client[];
   }
   return db.prepare("SELECT * FROM clients").all() as Client[];
 }
-
-// --- Stats ---
 
 export function getPipelineStats(): Record<ProspectStatus, number> {
   const db = getDb();
@@ -257,6 +246,7 @@ export function getPipelineStats(): Record<ProspectStatus, number> {
   const stats: Record<string, number> = {
     found: 0,
     qualified: 0,
+    disqualified: 0,
     contacted: 0,
     warm: 0,
     demo: 0,
@@ -264,9 +254,6 @@ export function getPipelineStats(): Record<ProspectStatus, number> {
     active: 0,
   };
 
-  for (const row of rows) {
-    stats[row.status] = row.count;
-  }
-
+  for (const row of rows) stats[row.status] = row.count;
   return stats as Record<ProspectStatus, number>;
 }

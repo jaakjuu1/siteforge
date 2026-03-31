@@ -5,6 +5,7 @@ import Database from "better-sqlite3";
 export type ProspectStatus =
   | "found"
   | "qualified"
+  | "disqualified"
   | "contacted"
   | "warm"
   | "demo"
@@ -29,6 +30,9 @@ export interface Prospect {
   screenshot_mobile: string | null;
   lighthouse_score: number | null;
   pain_score: number | null;
+  siteforge_fit_score: number | null;
+  fit_status: string | null;
+  disqualified_reason: string | null;
   pain_points: string | null; // JSON string
   status: ProspectStatus;
   created_at: string;
@@ -74,6 +78,9 @@ export function createTables(db: Database.Database): void {
       screenshot_mobile TEXT,
       lighthouse_score REAL,
       pain_score REAL,
+      siteforge_fit_score REAL,
+      fit_status TEXT,
+      disqualified_reason TEXT,
       pain_points TEXT,
       status TEXT NOT NULL DEFAULT 'found',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -107,4 +114,17 @@ export function createTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_prospects_city ON prospects(city);
     CREATE INDEX IF NOT EXISTS idx_interactions_prospect ON interactions(prospect_id);
   `);
+
+  const columns = db.prepare("PRAGMA table_info(prospects)").all() as { name: string }[];
+  const names = new Set(columns.map((c) => c.name));
+
+  if (!names.has("siteforge_fit_score")) {
+    db.exec("ALTER TABLE prospects ADD COLUMN siteforge_fit_score REAL");
+  }
+  if (!names.has("fit_status")) {
+    db.exec("ALTER TABLE prospects ADD COLUMN fit_status TEXT");
+  }
+  if (!names.has("disqualified_reason")) {
+    db.exec("ALTER TABLE prospects ADD COLUMN disqualified_reason TEXT");
+  }
 }
