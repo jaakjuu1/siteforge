@@ -1,46 +1,52 @@
 # SiteForge Pipeline — Architecture v2
 
-## Business Model (revised after GPT-5.4 review)
-- **Offer:** "Lisää varauksia ja soittoja" — EI "uusi sivu"
+## Business Model (revised after discovery rethink)
+- **Offer:** "Lisää tarjouspyyntöjä, soittoja ja näkyvyyttä" — EI vain "uusi sivu"
 - **Pricing:** €1200 setup + €99/kk (12kk sopimus) = €1200 + €1188/vuosi
 - **Target:** 20 asiakasta × €99/kk = €1,980/kk recurring + setupit
-- **Niche-first:** Yksi toimiala kerrallaan, aloitetaan kampaamoista Oulussa
+- **Niche-first:** rakennusalan paikalliset palveluyritykset ensin (sähkö, LVI, saumaus)
+- **Discovery-first correction:** emme etsi hakukoneen voittajia vaan alinäkyviä paikallisia yrityksiä
 - **Stack:** Astro 5 + Tailwind CSS 4 + TypeScript, Hetzner (Caddy)
 
-## Sales Funnel (audit-first, NOT demo-first)
+## Sales Funnel (maps-first, audit-first, NOT demo-first)
 ```
-1. Scrape + qualify (business pain signals, NOT aesthetics)
-2. Send personalized AUDIT email (what they're losing)
-3. Wait for warm reply
-4. ONLY THEN generate demo site
-5. Present demo + close
+1. Maps/listings discovery (find real local businesses without SEO bias)
+2. Fit-gate (reject chains, enterprise, ecommerce, complex functionality)
+3. Visibility-gap qualification (who is underpowered online vs real business potential)
+4. Send personalized AUDIT email (what they're losing)
+5. Wait for warm reply
+6. ONLY THEN generate demo site
+7. Present demo + close
 ```
 
-## Qualification Scoring (business pain, not design age)
-Score 0-10 based on:
-- [ ] No mobile CTA / click-to-call
-- [ ] No booking form / lead capture
-- [ ] Broken or missing HTTPS
-- [ ] Poor local SEO (no schema, no map)
-- [ ] Missing service pages
-- [ ] No Google review integration
-- [ ] Terrible mobile load speed (>4s)
-- [ ] Outdated hours/contact info
-- [ ] No conversion tracking
-- [ ] Poor Finnish copy quality
+## Qualification Scoring (opportunity, not visible-search weakness)
+We no longer score only pain. We score opportunity.
+
+Primary filters:
+- [ ] Not a chain / enterprise
+- [ ] Not ecommerce-heavy
+- [ ] Not portal / complex booking dependent
+- [ ] Fits SiteForge replacement model
+
+Primary scores:
+- **Visibility gap** — how weak the digital presence is relative to real business presence
+- **SiteForge fit** — can our product realistically improve or replace the site
+- **Commercial upside** — would better visibility and conversion likely create revenue
+- **Pain score** — conversion / SEO / trust issues on the current website
 
 ## Pipeline Phases
 
-### Phase 1: PROSPECTOR
+### Phase 1: MAPS-FIRST PROSPECTOR
 ```
-Input: niche + city (e.g., "kampaamo" + "Oulu")
-    → Google Places API / Finder.fi
-    → Business list (name, address, phone, domain, reviews)
-    → Screenshot (mobile + desktop)
-    → Lighthouse audit (performance, accessibility, SEO)
-    → AI pain-point analysis (NOT "is it old?" but "what are they losing?")
-    → Score 0-10
-    → Output: qualified prospects with pain points documented
+Input: niche + city/region (e.g., "sähkö" + "Jyväskylä")
+    → Google Maps / Places / Finder / local listings
+    → Raw business list (name, address, phone, domain, reviews, maps source)
+    → Fit gate (chain? enterprise? ecommerce? complex functionality?)
+    → Website + visibility enrichment
+    → Visibility-gap scoring
+    → SiteForge-fit scoring
+    → Commercial-upside scoring
+    → Only then: shortlist for audit
 ```
 
 ### Phase 2: AUDIT + OUTREACH
@@ -155,7 +161,8 @@ siteforge-pipeline/
 
 ## Validation Before Full Build
 Before building phases 3-6, validate with manual outreach:
-- Contact 30-50 kampaamoja in Oulu
+- Contact 30-50 local contractor businesses (sähkö / LVI / saumaus)
+- Source them from maps/listings, not search winners
 - Test 3 audit email variants
 - Measure: reply rate, interest rate, objections
 - Minimum viable: 3-5 positive replies before building demo generator

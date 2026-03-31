@@ -1,6 +1,18 @@
 # SiteForge
 
-Astro-pohjainen verkkosivupohja paikallisten yritysten sivustoille. Muokkaa `site.config.ts`, lisaa sisaltoa, ja sivusto on valmis.
+Astro-pohjainen verkkosivupohja paikallisten palveluyritysten sivustoille. Muokkaa `site.config.ts`, lisää sisältöä, ja sivusto on valmis.
+
+## Discovery direction
+
+SiteForge ei enää perustu ensisijaisesti hakukoneen näkyvien voittajien auditointiin.
+
+Uusi suunta on **maps-first discovery**:
+- löydä oikeat paikalliset yritykset maps/listings-datasta
+- karsi pois ketjut, enterprise-toimijat ja ecommerce-heavy caset
+- arvioi visibility gap + SiteForge fit + commercial upside
+- rakenna demo vasta oikeasti sopiville kohteille
+
+Katso tarkempi malli tiedostosta `MAPS_FIRST_DISCOVERY.md`.
 
 ## Teknologiat
 
